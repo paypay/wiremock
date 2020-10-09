@@ -27,4 +27,5 @@ jobs:
     - name: Publish to GitHub Packages
       run: gradle publish
       env:
-        GITHUB_TOKEN: ${{ secrets.WIREMOCK_TOKEN }}
+        TOKEN: ${{ secrets.WIREMOCK_TOKEN }}
+        USERNAME: nitinPaypay

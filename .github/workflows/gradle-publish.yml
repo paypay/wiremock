@@ -22,7 +22,7 @@ jobs:
         settings-path: ${{ github.workspace }} # location for the settings.xml file
 
     - name: Build with Gradle
-      run: ./gradlew build
+      run: ./gradlew build -x check
 
     - name: Publish to GitHub Packages
       run: gradle publish

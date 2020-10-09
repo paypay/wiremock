@@ -321,17 +321,11 @@ signing {
 publishing {
     repositories {
         maven {
-
-            def localRepo = file("${System.getProperty('user.home')}/.m2/repository").toURI().toURL()
-            def repoUrl = shouldPublishLocally ? localRepo : URI.create('https://oss.sonatype.org/service/local/staging/deploy/maven2').toURL()
-
-            url repoUrl
-
-            if (!shouldPublishLocally) {
-                credentials {
-                    username repoUser
-                    password repoPassword
-                }
+            name = "GitHubPackages"
+            url = uri("https://maven.pkg.github.com/nitinPaypay/package")
+            credentials {
+                username = System.getenv("GITHUB_ACTOR")
+                password = System.getenv("GITHUB_TOKEN")
             }
         }
     }

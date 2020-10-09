@@ -375,7 +375,7 @@ task checkReleasePreconditions {
         assert currentGitBranch == REQUIRED_GIT_BRANCH || shouldPublishLocally, "Must be on the $REQUIRED_GIT_BRANCH branch in order to release to Sonatype"
     }
 }
-publish.dependsOn checkReleasePreconditions, writeThinJarPom
+publish.dependsOn writeThinJarPom
 
 task addGitTag {
     doLast {

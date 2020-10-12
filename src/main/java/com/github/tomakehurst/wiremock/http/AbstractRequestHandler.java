@@ -17,10 +17,12 @@ package com.github.tomakehurst.wiremock.http;
 
 import com.github.tomakehurst.wiremock.extension.MeterRegistryProvider;
 import com.github.tomakehurst.wiremock.extension.requestfilter.*;
+import com.github.tomakehurst.wiremock.matching.RequestPattern;
 import com.github.tomakehurst.wiremock.stubbing.ServeEvent;
 import com.github.tomakehurst.wiremock.verification.LoggedRequest;
 import com.google.common.base.Stopwatch;
 import io.micrometer.core.instrument.MeterRegistry;
+import joptsimple.internal.Strings;
 
 import java.util.List;
 import java.util.Map;
@@ -129,18 +131,28 @@ public abstract class AbstractRequestHandler implements RequestHandler, RequestE
 	protected void publishMetrics(ServeEvent event){
 		if(Objects.nonNull(meterRegistry)) {
 			notifier().info("Publishing Metrics for URI: " + event.getRequest().getUrl());
-			String uri = event.getRequest().getUrl();
-				if(event.getResponse().getStatus() == 200){
-					notifier().info("Publishing Metrics for getUrlPath: " + event.getStubMapping().getRequest().getUrlPath());
-					notifier().info("Publishing Metrics for getUrl: " + event.getStubMapping().getRequest().getUrl());
-					notifier().info("Publishing Metrics for getUrlPathPattern: " + event.getStubMapping().getRequest().getUrlPathPattern());
-					notifier().info("Publishing Metrics for getUrlPattern: " + event.getStubMapping().getRequest().getUrlPattern());
-				}
-
+			String uri = normalizedURL(event);
 			meterRegistry.summary(HTTP_SERVER_REQUESTS,
 				"uri", uri,
 				"status", Integer.toString(event.getResponse().getStatus()))
 				.record(event.getTiming().getTotalTime());
 		}
+	}
+
+	private String normalizedURL(ServeEvent event){
+		RequestPattern requestPattern = event.getStubMapping().getRequest();
+		if(Objects.nonNull(requestPattern.getUrl())){
+			return requestPattern.getUrl().replaceAll(".+",":param");
+		}
+		if(Objects.nonNull(requestPattern.getUrlPattern())){
+			return requestPattern.getUrlPattern().replaceAll(".+",":param");
+		}
+		if(Objects.nonNull(requestPattern.getUrlPath())){
+			return requestPattern.getUrlPath().replaceAll(".+",":param");
+		}
+		if(Objects.nonNull(requestPattern.getUrlPathPattern())){
+			return requestPattern.getUrlPathPattern().replaceAll(".+",":param");
+		}
+		return event.getRequest().getUrl();
 	}
 }

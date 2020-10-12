@@ -136,7 +136,8 @@ public abstract class AbstractRequestHandler implements RequestHandler, RequestE
 			String uri = normalizedURL(event);
 			meterRegistry.summary(HTTP_SERVER_REQUESTS,
 				"uri", uri,
-				"status", Integer.toString(event.getResponse().getStatus()))
+				"status", Integer.toString(event.getResponse().getStatus())),
+			  "method", event.getRequest().getMethod()
 				.record(event.getTiming().getTotalTime());
 			notifier().info("Published Metrics.");
 		}

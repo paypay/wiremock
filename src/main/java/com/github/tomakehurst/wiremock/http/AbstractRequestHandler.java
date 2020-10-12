@@ -40,6 +40,8 @@ public abstract class AbstractRequestHandler implements RequestHandler, RequestE
 	protected final List<RequestFilter> requestFilters;
 	protected MeterRegistry meterRegistry = null;
   private static final String HTTP_SERVER_REQUESTS = "http.server.requests";
+	private static final String PARAMETER = ":param";
+
 
 	public AbstractRequestHandler(ResponseRenderer responseRenderer, List<RequestFilter> requestFilters, List<MeterRegistryProvider> meterRegistryProvider) {
 		this.responseRenderer = responseRenderer;
@@ -136,22 +138,23 @@ public abstract class AbstractRequestHandler implements RequestHandler, RequestE
 				"uri", uri,
 				"status", Integer.toString(event.getResponse().getStatus()))
 				.record(event.getTiming().getTotalTime());
+			notifier().info("Published Metrics.");
 		}
 	}
 
 	private String normalizedURL(ServeEvent event){
 		RequestPattern requestPattern = event.getStubMapping().getRequest();
 		if(Objects.nonNull(requestPattern.getUrl())){
-			return requestPattern.getUrl().replaceAll(".+",":param");
+			return requestPattern.getUrl().replaceAll(".+",PARAMETER);
 		}
 		if(Objects.nonNull(requestPattern.getUrlPattern())){
-			return requestPattern.getUrlPattern().replaceAll(".+",":param");
+			return requestPattern.getUrlPattern().replaceAll(".+",PARAMETER);
 		}
 		if(Objects.nonNull(requestPattern.getUrlPath())){
-			return requestPattern.getUrlPath().replaceAll(".+",":param");
+			return requestPattern.getUrlPath().replaceAll(".+",PARAMETER);
 		}
 		if(Objects.nonNull(requestPattern.getUrlPathPattern())){
-			return requestPattern.getUrlPathPattern().replaceAll(".+",":param");
+			return requestPattern.getUrlPathPattern().replaceAll(".+",PARAMETER);
 		}
 		return event.getRequest().getUrl();
 	}

@@ -128,9 +128,13 @@ public abstract class AbstractRequestHandler implements RequestHandler, RequestE
 
 	protected void publishMetrics(ServeEvent event){
 		if(Objects.nonNull(meterRegistry)) {
-			notifier().info("Publishing Metrics");
 			String uri = event.getStubMapping().getRequest().getUrlPath().isEmpty()?
 										 event.getStubMapping().getRequest().getUrlPathPattern(): event.getStubMapping().getRequest().getUrlPath();
+			notifier().info("Publishing Metrics for URI: " + uri);
+			notifier().info("Publishing Metrics for getUrlPath: " + event.getStubMapping().getRequest().getUrlPath());
+			notifier().info("Publishing Metrics for getUrl: " + event.getStubMapping().getRequest().getUrl());
+			notifier().info("Publishing Metrics for getUrlPathPattern: " + event.getStubMapping().getRequest().getUrlPathPattern());
+			notifier().info("Publishing Metrics for getUrlPattern: " + event.getStubMapping().getRequest().getUrlPattern());
 			meterRegistry.summary(HTTP_SERVER_REQUESTS,
 				"uri", uri,
 				"status", Integer.toString(event.getResponse().getStatus()))

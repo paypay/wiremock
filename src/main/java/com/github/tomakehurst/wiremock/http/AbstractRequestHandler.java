@@ -24,6 +24,7 @@ import io.micrometer.core.instrument.MeterRegistry;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 import static com.github.tomakehurst.wiremock.common.LocalNotifier.notifier;
 import static com.github.tomakehurst.wiremock.extension.requestfilter.FilterProcessor.processFilters;
@@ -76,7 +77,6 @@ public abstract class AbstractRequestHandler implements RequestHandler, RequestE
 		responseDefinition.setOriginalRequest(processedRequest);
 		Response response = responseRenderer.render(serveEvent);
 		ServeEvent completedServeEvent = serveEvent.complete(response, (int) stopwatch.elapsed(MILLISECONDS));
-
 		if (logRequests()) {
 			notifier().info("Request received:\n" +
 					formatRequest(processedRequest) +
@@ -90,13 +90,12 @@ public abstract class AbstractRequestHandler implements RequestHandler, RequestE
 
         beforeResponseSent(completedServeEvent, response);
 
-		//Publishing metrics
-		publishMetrics((double)stopwatch.elapsed(MILLISECONDS));
 		stopwatch.reset();
 		stopwatch.start();
 		httpResponder.respond(processedRequest, response);
 
         completedServeEvent.afterSend((int) stopwatch.elapsed(MILLISECONDS));
+        this.publishMetrics(request, response, completedServeEvent.getTiming().getTotalTime());
         afterResponseSent(completedServeEvent, response);
         stopwatch.stop();
 	}
@@ -127,10 +126,12 @@ public abstract class AbstractRequestHandler implements RequestHandler, RequestE
 
 	protected abstract ServeEvent handleRequest(Request request);
 
-	protected void publishMetrics(double latency){
-		if(meterRegistry != null) {
+	protected void publishMetrics(Request request, Response response, double latency){
+		if(Objects.nonNull(meterRegistry)) {
 			notifier().info("Publishing Metrics");
-			meterRegistry.summary(HTTP_SERVER_REQUESTS).record(latency);
+			meterRegistry.summary(HTTP_SERVER_REQUESTS,
+				"uri", request.getUrl(),
+				"status", Integer.toString(response.getStatus())).record(latency);
 		}
 	}
 }

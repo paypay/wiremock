@@ -95,7 +95,7 @@ public abstract class AbstractRequestHandler implements RequestHandler, RequestE
 		httpResponder.respond(processedRequest, response);
 
         completedServeEvent.afterSend((int) stopwatch.elapsed(MILLISECONDS));
-        this.publishMetrics(request, response, completedServeEvent.getTiming().getTotalTime());
+        this.publishMetrics(completedServeEvent);
         afterResponseSent(completedServeEvent, response);
         stopwatch.stop();
 	}
@@ -126,12 +126,15 @@ public abstract class AbstractRequestHandler implements RequestHandler, RequestE
 
 	protected abstract ServeEvent handleRequest(Request request);
 
-	protected void publishMetrics(Request request, Response response, double latency){
+	protected void publishMetrics(ServeEvent event){
 		if(Objects.nonNull(meterRegistry)) {
 			notifier().info("Publishing Metrics");
+			String uri = event.getStubMapping().getRequest().getUrlPath().isEmpty()?
+										 event.getStubMapping().getRequest().getUrlPathPattern(): event.getStubMapping().getRequest().getUrlPath();
 			meterRegistry.summary(HTTP_SERVER_REQUESTS,
-				"uri", request.getUrl(),
-				"status", Integer.toString(response.getStatus())).record(latency);
+				"uri", uri,
+				"status", Integer.toString(event.getResponse().getStatus()))
+				.record(event.getTiming().getTotalTime());
 		}
 	}
 }

@@ -144,6 +144,9 @@ public abstract class AbstractRequestHandler implements RequestHandler, RequestE
 
 	private String normalizedURL(ServeEvent event){
 		RequestPattern requestPattern = event.getStubMapping().getRequest();
+		if(event.getResponse().getStatus() != 200){
+			return event.getRequest().getUrl();
+		}
 		if(Objects.nonNull(requestPattern.getUrl())){
 			notifier().info("URL::" + requestPattern.getUrl());
 			return requestPattern.getUrl().replace("(.+)",PARAMETER).replace(".+",PARAMETER);
